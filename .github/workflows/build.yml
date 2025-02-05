@@ -31,9 +31,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Ensure test files exist
+      - name: Debug - List test files
         run: |
-          ls src/*.test.ts || echo "No test files found!"
+          echo "Listing test files..."
+          ls -R src/ || echo "src directory not found!"
         shell: bash
 
       - name: Testing on OS (${{ matrix.os }}) with Node.js (version ${{ matrix.node-version }}) attempt ${{ matrix.attempt }}
@@ -42,6 +43,11 @@ jobs:
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             node --import tsx/esm --test $(Get-ChildItem src -Filter *.test.ts | ForEach-Object { $_.FullName })
           else
-            node --import tsx/esm --test "src/**/*.test.ts" || npx tsx --test "src/**/*.test.ts"
+            TEST_FILES=$(find src -type f -name "*.test.ts")
+            if [[ -z "$TEST_FILES" ]]; then
+              echo "No test files found!"
+              exit 1
+            fi
+            node --import tsx/esm --test $TEST_FILES || npx tsx --test $TEST_FILES
           fi
         shell: bash
