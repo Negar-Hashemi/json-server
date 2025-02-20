@@ -16,8 +16,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest] # Operating systems to test
-        node-version: [18, 20, 22]                        # Node.js versions to test
-        attempt: [1, 2, 3, 4, 5]                          # Repeat tests 5 times
+        node-version: [18, 20, 22]                      # Node.js versions to test
+        attempt: [1, 2, 3, 4, 5]                        # Repeat tests 5 times
 
     steps:
       - name: Checkout code
@@ -31,23 +31,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Debug - List test files
-        run: |
-          echo "Listing test files..."
-          ls -R src/ || echo "src directory not found!"
-        shell: bash
-
       - name: Testing on OS (${{ matrix.os }}) with Node.js (version ${{ matrix.node-version }}) attempt ${{ matrix.attempt }}
         run: |
           echo "Run attempt: ${{ matrix.attempt }}"
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
-            node --import tsx/esm --test $(Get-ChildItem src -Filter *.test.ts | ForEach-Object { $_.FullName })
-          else
-            TEST_FILES=$(find src -type f -name "*.test.ts")
-            if [[ -z "$TEST_FILES" ]]; then
-              echo "No test files found!"
-              exit 1
-            fi
-            node --import tsx/esm --test $TEST_FILES || npx tsx --test $TEST_FILES
-          fi
-        shell: bash
+          npm test
+
+    continue-on-error: false
